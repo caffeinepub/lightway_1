@@ -358,7 +358,7 @@ const GRAMMAR_LESSONS = [
     id: "madd",
     title: "Dərs 6: Uzanma (Mədd)",
     explanation:
-      "Ərəb dilində 3 uzanma hərfi var: ا (elif) fəthadan sonra, و (vav) zəmmədən sonra, ي (ya) kəsrədən sonra. Bu hərflər saitın müddətini 2 dəfə uzadır. Quranda uzanma hərflərini düzgün oxumaq vacibdir.",
+      "Ərəb dilində 3 uzanma hərfi var: ا (elif) fəthadan sonra, و (vav) zəmmədən sonra, ي (ya) kəsrədən sonra. Bu hərflər saitin müddətini 2 dəfə uzadır.",
     examples: [
       {
         arabic: "قَالَ",
@@ -553,8 +553,14 @@ const HARAKAT_QUIZ = [
   },
 ];
 
+// Check if speech synthesis is available (not in IE/old Edge)
+const SPEECH_SUPPORTED =
+  typeof window !== "undefined" &&
+  "speechSynthesis" in window &&
+  typeof SpeechSynthesisUtterance !== "undefined";
+
 function speakArabic(text: string) {
-  if (!window.speechSynthesis) return;
+  if (!SPEECH_SUPPORTED) return;
   window.speechSynthesis.cancel();
   const doSpeak = () => {
     const utterance = new SpeechSynthesisUtterance(text);
@@ -789,6 +795,20 @@ export default function ArabicLearnPage() {
         </p>
         <h1 className="text-xl font-extrabold text-white">Ərəbcə Öyrən</h1>
         <p className="text-white/50 text-sm mt-1">Quran ərəbcəsinin əsasları</p>
+        {/* Speech synthesis notice for unsupported browsers */}
+        {!SPEECH_SUPPORTED && (
+          <div
+            className="mt-3 mx-auto max-w-xs px-4 py-2 rounded-xl text-xs"
+            style={{
+              background: "oklch(0.5 0.1 50 / 0.2)",
+              border: "1px solid oklch(0.6 0.12 50 / 0.4)",
+              color: "oklch(0.8 0.1 50)",
+            }}
+          >
+            ⚠️ Tələffüz funksiyası bu brauzer tərəfindən dəstəklənmir. Chrome və
+            ya Firefox istifadə edin.
+          </div>
+        )}
       </div>
 
       <div className="px-4 pt-4">
@@ -829,6 +849,11 @@ export default function ArabicLearnPage() {
               </h2>
               <p className="text-white/50 text-sm mb-4">
                 Hərfə toxunaraq tələffüzü dinlə
+                {!SPEECH_SUPPORTED && (
+                  <span className="text-orange-400 ml-1">
+                    (Chrome tövsiyə olunur)
+                  </span>
+                )}
               </p>
               <div className="grid grid-cols-4 gap-2">
                 {ARABIC_ALPHABET.map((letter, i) => (
@@ -863,7 +888,9 @@ export default function ArabicLearnPage() {
                     <div className="text-white/45 text-[10px] mt-0.5">
                       {letter.latin}
                     </div>
-                    <Volume2 className="w-2.5 h-2.5 absolute top-1.5 right-1.5 text-white/25" />
+                    {SPEECH_SUPPORTED && (
+                      <Volume2 className="w-2.5 h-2.5 absolute top-1.5 right-1.5 text-white/25" />
+                    )}
                   </motion.button>
                 ))}
               </div>
@@ -907,7 +934,7 @@ export default function ArabicLearnPage() {
                         <span
                           className="font-amiri text-2xl"
                           dir="rtl"
-                          style={{ color: "oklch(var(--islamic-gold) / 0.9))" }}
+                          style={{ color: "oklch(var(--islamic-gold) / 0.9)" }}
                         >
                           {selectedLetter.word}
                         </span>
@@ -920,30 +947,32 @@ export default function ArabicLearnPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2 mt-4">
-                    <button
-                      type="button"
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium"
-                      style={{
-                        backgroundColor: "oklch(var(--islamic-gold) / 0.2)",
-                        color: "oklch(var(--islamic-gold))",
-                      }}
-                      onClick={() => speakArabic(selectedLetter.arabic)}
-                    >
-                      <Volume2 className="w-4 h-4" /> Hərf tələffüzü
-                    </button>
-                    <button
-                      type="button"
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium"
-                      style={{
-                        backgroundColor: "oklch(var(--islamic-green) / 0.2)",
-                        color: "oklch(0.7 0.15 160)",
-                      }}
-                      onClick={() => speakArabic(selectedLetter.word)}
-                    >
-                      <Volume2 className="w-4 h-4" /> Söz nümunəsi
-                    </button>
-                  </div>
+                  {SPEECH_SUPPORTED && (
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        type="button"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium"
+                        style={{
+                          backgroundColor: "oklch(var(--islamic-gold) / 0.2)",
+                          color: "oklch(var(--islamic-gold))",
+                        }}
+                        onClick={() => speakArabic(selectedLetter.arabic)}
+                      >
+                        <Volume2 className="w-4 h-4" /> Hərf tələffüzü
+                      </button>
+                      <button
+                        type="button"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium"
+                        style={{
+                          backgroundColor: "oklch(var(--islamic-green) / 0.2)",
+                          color: "oklch(0.7 0.15 160)",
+                        }}
+                        onClick={() => speakArabic(selectedLetter.word)}
+                      >
+                        <Volume2 className="w-4 h-4" /> Söz nümunəsi
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
               )}
             </section>
@@ -1006,18 +1035,20 @@ export default function ArabicLearnPage() {
                           <span className="text-white/70 text-sm">
                             — {h.meaning}
                           </span>
-                          <button
-                            type="button"
-                            className="ml-auto"
-                            onClick={() => speakArabic(h.example)}
-                          >
-                            <Volume2
-                              className="w-4 h-4"
-                              style={{
-                                color: "oklch(var(--islamic-gold) / 0.6)",
-                              }}
-                            />
-                          </button>
+                          {SPEECH_SUPPORTED && (
+                            <button
+                              type="button"
+                              className="ml-auto"
+                              onClick={() => speakArabic(h.example)}
+                            >
+                              <Volume2
+                                className="w-4 h-4"
+                                style={{
+                                  color: "oklch(var(--islamic-gold) / 0.6)",
+                                }}
+                              />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1118,16 +1149,20 @@ export default function ArabicLearnPage() {
                       >
                         {ex.arabic}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => speakArabic(ex.arabic)}
-                        className="shrink-0"
-                      >
-                        <Volume2
-                          className="w-3.5 h-3.5"
-                          style={{ color: "oklch(var(--islamic-gold) / 0.5)" }}
-                        />
-                      </button>
+                      {SPEECH_SUPPORTED && (
+                        <button
+                          type="button"
+                          onClick={() => speakArabic(ex.arabic)}
+                          className="shrink-0"
+                        >
+                          <Volume2
+                            className="w-3.5 h-3.5"
+                            style={{
+                              color: "oklch(var(--islamic-gold) / 0.5)",
+                            }}
+                          />
+                        </button>
+                      )}
                       <span className="text-white/50 text-sm italic shrink-0">
                         ({ex.latin})
                       </span>
