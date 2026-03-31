@@ -82,7 +82,7 @@ const GUIDANCE: Record<
   MoodKey,
   {
     ayah: { ar: string; tr: string };
-    dua: { ar: string; tr: string };
+    dua: { ar: string; latin: string; tr: string };
     zikr: string;
     color: string;
   }
@@ -94,6 +94,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ",
+      latin: "Allāhumma innī a'ūdhu bika minal-hammi wal-ḥazan",
       tr: "Allahım, narahatlıq və kədərdən sənə sığınıram.",
     },
     zikr: "Subhanallah (33 dəfə)",
@@ -106,6 +107,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ",
+      latin: "Bismillāhil-ladhī lā yaḍurru ma'as-mihī shay'",
       tr: "Adı ilə heç bir şeyin zərər verə bilmədiyi Allahın adıyla.",
     },
     zikr: "Hasbiyallah (100 dəfə)",
@@ -118,6 +120,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي",
+      latin: "Rabbi-shraḥ lī ṣadrī wa yassir lī amrī",
       tr: "Rəbbim, köksümü genişləndir, işimi asanlaşdır. (Taha 25-26)",
     },
     zikr: "Estağfirullah (70 dəfə)",
@@ -130,6 +133,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "اللَّهُمَّ إِنِّي عَبْدُكَ وَأَنَا فَقِيرٌ إِلَيْكَ",
+      latin: "Allāhumma innī 'abduka wa anā faqīrun ilayk",
       tr: "Allahım, mən sənin qulunam, sənə möhtacam.",
     },
     zikr: "Ya Latif (100 dəfə)",
@@ -142,6 +146,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "رَبِّ لَا تَذَرْنِي فَرْدًا وَأَنتَ خَيْرُ الْوَارِثِينَ",
+      latin: "Rabbi lā tadharni fardan wa anta khayrul-wārithīn",
       tr: "Rəbbim, məni tək qoyma. Sən varislərin ən yaxşısısın. (Ənbiya 89)",
     },
     zikr: "Ya Qarib (100 dəfə)",
@@ -154,6 +159,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ",
+      latin: "A'ūdhu billāhi minash-shayṭānir-rajīm",
       tr: "Kovulmuş şeytandan Allaha sığınıram.",
     },
     zikr: "Euzu billahi minəş-şeytanir-racim (3 dəfə)",
@@ -166,6 +172,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "الْحَمْدُ لِلَّهِ الَّذِي بِنِعْمَتِهِ تَتِمُّ الصَّالِحَاتُ",
+      latin: "Alḥamdu lillāhil-ladhī bini'matihī tatimmuṣ-ṣāliḥāt",
       tr: "Nemətləri ilə yaxşı işlər tamamlanan Allaha həmd olsun.",
     },
     zikr: "Elhamdulillah (100 dəfə)",
@@ -178,6 +185,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "رَبَّنَا لَا تُؤَاخِذْنَا إِن نَّسِينَا أَوْ أَخْطَأْنَا",
+      latin: "Rabbanā lā tu'ākhidhnā in nasīnā aw akhṭa'nā",
       tr: "Rəbbimiz, unutduqlarımıza və xətalarımıza görə bizi cəzalandırma. (Bəqərə 286)",
     },
     zikr: "Ya Fattah (33 dəfə)",
@@ -190,6 +198,8 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "رَبَّنَا ظَلَمْنَا أَنفُسَنَا وَإِن لَّمْ تَغْفِرْ لَنَا لَنَكُونَنَّ مِنَ الْخَاسِرِينَ",
+      latin:
+        "Rabbanā ẓalamnā anfusanā wa il-lam taghfir lanā lanakūnanna minal-khāsirīn",
       tr: "Rəbbimiz, özümüzə zülm etdik. Bağışlamasan, ziyana uğrayanlardan olarıq. (Əraf 23)",
     },
     zikr: "Estağfirullah (100 dəfə)",
@@ -202,6 +212,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "اللَّهُمَّ اغْفِرْ لِي ذَنْبِي كُلَّهُ",
+      latin: "Allāhummaghfir lī dhambī kullahu",
       tr: "Allahım, bütün günahlarımı bağışla.",
     },
     zikr: "Estağfirullahal-Azim (70 dəfə)",
@@ -214,6 +225,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "اللَّهُمَّ أَجِرْنِي فِي مُصِيبَتِي وَأَخْلِفْ لِي خَيْرًا مِنْهَا",
+      latin: "Allāhumma ajurnī fī muṣībatī wa akhlif lī khayran minhā",
       tr: "Allahım, müsibətimdə bana mükafat ver, ondan daha yaxşısını qismət et.",
     },
     zikr: "Ya Sabur (100 dəfə)",
@@ -226,6 +238,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "اللَّهُمَّ بَارِكْ لِي فِيمَا رَزَقْتَنِي",
+      latin: "Allāhumma bārik lī fīmā razaqtanī",
       tr: "Allahım, bana verdiyin ruzi və nemətə bərəkət ver.",
     },
     zikr: "Elhamdulillah ala kulli hal (33 dəfə)",
@@ -238,6 +251,7 @@ const GUIDANCE: Record<
     },
     dua: {
       ar: "لَا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ",
+      latin: "Lā ilāha illā anta subḥānaka innī kuntu minaẓ-ẓālimīn",
       tr: "Səndən başqa ilah yoxdur. Sən pak və müqəddəssən. Mən zalımlardan oldum. (Ənbiya 87)",
     },
     zikr: "La ilaha illallah (100 dəfə)",
@@ -420,6 +434,12 @@ export default function MoodGuidancePage() {
                   </div>
                   <p className="font-amiri text-lg text-right leading-relaxed text-white mb-2">
                     {guidance.dua.ar}
+                  </p>
+                  <p
+                    className="text-xs italic mb-1"
+                    style={{ color: `oklch(0.70 0.10 ${guidance.color})` }}
+                  >
+                    {guidance.dua.latin}
                   </p>
                   <p className="text-white/55 text-sm">{guidance.dua.tr}</p>
                 </div>

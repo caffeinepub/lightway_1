@@ -29,14 +29,17 @@ const AYAHS = [
 const DUAS = [
   {
     ar: "رَبِّ زِدْنِي عِلْمًا",
+    latin: "Rabbi zidnī 'ilmā",
     tr: "Rəbbim, elmimi artır. (Taha 114)",
   },
   {
     ar: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً",
+    latin: "Rabbanā ātinā fid-dunyā hasanah",
     tr: "Rəbbimiz, bizə dünyada da, axirətdə də gözəllik ver. (Bəqərə 201)",
   },
   {
     ar: "رَبِّ اغْفِرْ لِي وَلِوَالِدَيَّ",
+    latin: "Rabbighfir lī wa liwālidayya",
     tr: "Rəbbim, mənə və valideynlərimə bağışla. (İbrahim 41)",
   },
 ];
@@ -110,6 +113,7 @@ export default function DailyPlanPage() {
       id: "ayah",
       label: "Günün Ayəsi",
       ar: ayah.ar,
+      latin: undefined as string | undefined,
       tr: ayah.tr,
       checked: c0,
       idx: 0,
@@ -118,6 +122,7 @@ export default function DailyPlanPage() {
       id: "dua",
       label: "Günün Duası",
       ar: dua.ar,
+      latin: dua.latin,
       tr: dua.tr,
       checked: c1,
       idx: 1,
@@ -126,6 +131,7 @@ export default function DailyPlanPage() {
       id: "zikr",
       label: "33 Zikr — Subhanallah",
       ar: "سُبْحَانَ اللَّهِ",
+      latin: "Subhānallāh",
       tr: "Subhanallah — 33 dəfə",
       checked: c2,
       idx: 2,
@@ -154,7 +160,7 @@ export default function DailyPlanPage() {
       </div>
 
       <div className="px-4 mt-4 flex flex-col gap-3">
-        {TASKS.map(({ id, label, ar, tr, checked, idx }) => (
+        {TASKS.map(({ id, label, ar, latin, tr, checked, idx }) => (
           <motion.div
             key={id}
             initial={{ opacity: 0, y: 8 }}
@@ -212,6 +218,14 @@ export default function DailyPlanPage() {
                 >
                   {ar}
                 </p>
+                {latin && (
+                  <p
+                    className="text-xs italic mb-1"
+                    style={{ color: "oklch(var(--islamic-gold) / 0.7)" }}
+                  >
+                    {latin}
+                  </p>
+                )}
                 <p className="text-xs text-white/40">{tr}</p>
               </div>
             </div>

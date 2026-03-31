@@ -73,6 +73,50 @@ export default function PrayerTimesPage() {
   const [displayCity, setDisplayCity] = useState("Bakı");
   const [now, setNow] = useState(new Date());
   const autoLoadedRef = useRef(false);
+  const [azanPlaying, setAzanPlaying] = useState(false);
+  const [iqamaPlaying, setIqamaPlaying] = useState(false);
+  const azanRef = useRef<HTMLAudioElement | null>(null);
+  const iqamaRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleAzan = () => {
+    if (azanPlaying) {
+      azanRef.current?.pause();
+      if (azanRef.current) azanRef.current.currentTime = 0;
+      setAzanPlaying(false);
+      return;
+    }
+    if (iqamaPlaying) {
+      iqamaRef.current?.pause();
+      if (iqamaRef.current) iqamaRef.current.currentTime = 0;
+      setIqamaPlaying(false);
+    }
+    const audio = new Audio("/assets/azan.mp3");
+    azanRef.current = audio;
+    setAzanPlaying(true);
+    audio.play().catch(() => setAzanPlaying(false));
+    audio.onended = () => setAzanPlaying(false);
+    audio.onerror = () => setAzanPlaying(false);
+  };
+
+  const handleIqama = () => {
+    if (iqamaPlaying) {
+      iqamaRef.current?.pause();
+      if (iqamaRef.current) iqamaRef.current.currentTime = 0;
+      setIqamaPlaying(false);
+      return;
+    }
+    if (azanPlaying) {
+      azanRef.current?.pause();
+      if (azanRef.current) azanRef.current.currentTime = 0;
+      setAzanPlaying(false);
+    }
+    const audio = new Audio("/assets/iqamat.mp3");
+    iqamaRef.current = audio;
+    setIqamaPlaying(true);
+    audio.play().catch(() => setIqamaPlaying(false));
+    audio.onended = () => setIqamaPlaying(false);
+    audio.onerror = () => setIqamaPlaying(false);
+  };
 
   // Update clock every minute
   useEffect(() => {
@@ -147,6 +191,44 @@ export default function PrayerTimesPage() {
             {t("prayerTimes")}
           </h1>
           <p className="text-white/60">{t("baqarahQuote")}</p>
+
+          {/* Azan & Iqama buttons */}
+          <div className="flex justify-center gap-3 mt-5">
+            <button
+              type="button"
+              onClick={handleAzan}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all"
+              style={{
+                background: azanPlaying
+                  ? "oklch(var(--islamic-gold))"
+                  : "oklch(var(--islamic-gold) / 0.15)",
+                color: azanPlaying
+                  ? "oklch(var(--islamic-dark))"
+                  : "oklch(var(--islamic-gold))",
+                border: "1.5px solid oklch(var(--islamic-gold) / 0.4)",
+              }}
+              data-ocid="prayer.azan_button"
+            >
+              {azanPlaying ? "⏹ Dayandır" : "🔊 Azan"}
+            </button>
+            <button
+              type="button"
+              onClick={handleIqama}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all"
+              style={{
+                background: iqamaPlaying
+                  ? "oklch(var(--islamic-gold))"
+                  : "oklch(var(--islamic-gold) / 0.15)",
+                color: iqamaPlaying
+                  ? "oklch(var(--islamic-dark))"
+                  : "oklch(var(--islamic-gold))",
+                border: "1.5px solid oklch(var(--islamic-gold) / 0.4)",
+              }}
+              data-ocid="prayer.iqama_button"
+            >
+              {iqamaPlaying ? "⏹ Dayandır" : "🔊 İqamə"}
+            </button>
+          </div>
         </div>
       </div>
 
