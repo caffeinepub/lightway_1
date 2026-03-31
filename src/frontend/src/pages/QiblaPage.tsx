@@ -32,39 +32,15 @@ function calculateDistance(lat: number, lng: number): number {
   return Math.round(R * c);
 }
 
-// Reliable azan/iqama audio sources with fallbacks
-const AZAN_URLS = [
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", // placeholder removed below
-];
-
-const AZAN_PRIMARY = "https://audio.islamicfinder.org/audio/azan/en/1.mp3";
+// Reliable azan audio - using archive.org direct links (no CORS issues)
+const AZAN_URL =
+  "https://ia800104.us.archive.org/21/items/AzaanCollection/Azan_Mecca.mp3";
 const AZAN_FALLBACK =
-  "https://download.quranicaudio.com/quran/abdurrahmaan_as-sudais/001.mp3";
-const IQAMA_PRIMARY = "https://audio.islamicfinder.org/audio/iqamah/en/1.mp3";
-
-// Suppress unused warning
-void AZAN_URLS;
-
-async function tryPlayAudio(
-  audio: HTMLAudioElement,
-  fallbackSrc?: string,
-): Promise<boolean> {
-  try {
-    await audio.play();
-    return true;
-  } catch {
-    if (fallbackSrc && audio.src !== fallbackSrc) {
-      audio.src = fallbackSrc;
-      try {
-        await audio.play();
-        return true;
-      } catch {
-        return false;
-      }
-    }
-    return false;
-  }
-}
+  "https://ia601200.us.archive.org/17/items/adhan_20210907/adhan.mp3";
+const IQAMA_URL =
+  "https://ia803404.us.archive.org/14/items/IqamahIslam/Iqamah.mp3";
+const IQAMA_FALLBACK =
+  "https://ia800104.us.archive.org/21/items/AzaanCollection/Iqama.mp3";
 
 export default function QiblaPage() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
@@ -80,27 +56,59 @@ export default function QiblaPage() {
   const [compassSupported, setCompassSupported] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [permissionRequested, setPermissionRequested] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
 
   const azanAudioRef = useRef<HTMLAudioElement | null>(null);
   const iqamaAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Setup audio elements
+  // Setup audio elements - no crossOrigin to avoid CORS
   useEffect(() => {
-    azanAudioRef.current = new Audio(AZAN_PRIMARY);
-    iqamaAudioRef.current = new Audio(IQAMA_PRIMARY);
-    azanAudioRef.current.crossOrigin = "anonymous";
-    iqamaAudioRef.current.crossOrigin = "anonymous";
-    azanAudioRef.current.preload = "none";
-    iqamaAudioRef.current.preload = "none";
+    const azan = new Audio();
+    azan.preload = "none";
+    azan.addEventListener("ended", () => setPlayingAzan(false));
+    azan.addEventListener("error", () => {
+      // Try fallback
+      if (azan.src !== AZAN_FALLBACK) {
+        azan.src = AZAN_FALLBACK;
+        azan.play().catch(() => {
+          setPlayingAzan(false);
+          setAudioError(
+            "Azan audio yüklənə bilmədi. İnternet bağlantısını yoxlayın.",
+          );
+        });
+      } else {
+        setPlayingAzan(false);
+        setAudioError(
+          "Azan audio yüklənə bilmədi. İnternet bağlantısını yoxlayın.",
+        );
+      }
+    });
+    azanAudioRef.current = azan;
 
-    azanAudioRef.current.addEventListener("ended", () => setPlayingAzan(false));
-    iqamaAudioRef.current.addEventListener("ended", () =>
-      setPlayingIqama(false),
-    );
+    const iqama = new Audio();
+    iqama.preload = "none";
+    iqama.addEventListener("ended", () => setPlayingIqama(false));
+    iqama.addEventListener("error", () => {
+      if (iqama.src !== IQAMA_FALLBACK) {
+        iqama.src = IQAMA_FALLBACK;
+        iqama.play().catch(() => {
+          setPlayingIqama(false);
+          setAudioError(
+            "İqamə audio yüklənə bilmədi. İnternet bağlantısını yoxlayın.",
+          );
+        });
+      } else {
+        setPlayingIqama(false);
+        setAudioError(
+          "İqamə audio yüklənə bilmədi. İnternet bağlantısını yoxlayın.",
+        );
+      }
+    });
+    iqamaAudioRef.current = iqama;
 
     return () => {
-      azanAudioRef.current?.pause();
-      iqamaAudioRef.current?.pause();
+      azan.pause();
+      iqama.pause();
     };
   }, []);
 
@@ -129,42 +137,78 @@ export default function QiblaPage() {
     );
   }, []);
 
-  // Device compass
-  const requestCompassPermission = () => {
-    setPermissionRequested(true);
+  // Device compass - use deviceorientationabsolute if available for accurate heading
+  const startCompass = (onHeading: (h: number) => void) => {
     const handleOrientation = (e: DeviceOrientationEvent) => {
-      setCompassSupported(true);
+      let heading: number;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const heading =
-        (e as any).webkitCompassHeading ??
-        (e.alpha !== null ? 360 - e.alpha : 0);
-      setDeviceHeading(heading);
+      if ((e as any).webkitCompassHeading !== undefined) {
+        // iOS - webkitCompassHeading is already true north clockwise
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        heading = (e as any).webkitCompassHeading;
+      } else if (e.alpha !== null) {
+        // Android - alpha is counterclockwise from north
+        heading = (360 - e.alpha) % 360;
+      } else {
+        return;
+      }
+      setCompassSupported(true);
+      onHeading(heading);
     };
 
-    if (typeof DeviceOrientationEvent !== "undefined") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const DOE = DeviceOrientationEvent as any;
-      if (typeof DOE.requestPermission === "function") {
-        DOE.requestPermission()
-          .then((res: string) => {
-            if (res === "granted") {
-              window.addEventListener("deviceorientation", handleOrientation);
-            }
-          })
-          .catch(() => {});
+    // Prefer absolute orientation (more accurate on Android)
+    const supportsAbsolute = "ondeviceorientationabsolute" in window;
+    if (supportsAbsolute) {
+      window.addEventListener(
+        "deviceorientationabsolute" as "deviceorientation",
+        handleOrientation,
+        true,
+      );
+    } else {
+      window.addEventListener("deviceorientation", handleOrientation, true);
+    }
+
+    return () => {
+      if (supportsAbsolute) {
+        window.removeEventListener(
+          "deviceorientationabsolute" as "deviceorientation",
+          handleOrientation,
+          true,
+        );
       } else {
-        window.addEventListener("deviceorientation", handleOrientation);
+        window.removeEventListener(
+          "deviceorientation",
+          handleOrientation,
+          true,
+        );
       }
+    };
+  };
+
+  const requestCompassPermission = () => {
+    setPermissionRequested(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const DOE = DeviceOrientationEvent as any;
+    if (typeof DOE?.requestPermission === "function") {
+      DOE.requestPermission()
+        .then((res: string) => {
+          if (res === "granted") {
+            startCompass(setDeviceHeading);
+          }
+        })
+        .catch(() => {});
+    } else {
+      startCompass(setDeviceHeading);
     }
   };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
   useEffect(() => {
-    // Auto-start on non-iOS (no permission needed)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const DOE = DeviceOrientationEvent as any;
     if (typeof DOE?.requestPermission !== "function") {
-      requestCompassPermission();
+      // Non-iOS: start automatically
+      return startCompass(setDeviceHeading);
     }
   }, []);
 
@@ -177,13 +221,23 @@ export default function QiblaPage() {
       setPlayingAzan(false);
     } else {
       iqamaAudioRef.current?.pause();
-      if (iqamaAudioRef.current) iqamaAudioRef.current.currentTime = 0;
+      if (iqamaAudioRef.current) {
+        iqamaAudioRef.current.currentTime = 0;
+      }
       setPlayingIqama(false);
+      setAudioLoading(true);
       setPlayingAzan(true);
-      const ok = await tryPlayAudio(azanAudioRef.current, AZAN_FALLBACK);
-      if (!ok) {
+      azanAudioRef.current.src = AZAN_URL;
+      try {
+        await azanAudioRef.current.play();
+      } catch {
+        // Error handler on the audio element will handle fallback
         setPlayingAzan(false);
-        setAudioError("Audio yüklənə bilmədi. İnternet bağlantınızı yoxlayın.");
+        setAudioError(
+          "Audio oynatmaq üçün düyməyə basın (brauzer icazəsi lazımdır).",
+        );
+      } finally {
+        setAudioLoading(false);
       }
     }
   };
@@ -197,29 +251,36 @@ export default function QiblaPage() {
       setPlayingIqama(false);
     } else {
       azanAudioRef.current?.pause();
-      if (azanAudioRef.current) azanAudioRef.current.currentTime = 0;
+      if (azanAudioRef.current) {
+        azanAudioRef.current.currentTime = 0;
+      }
       setPlayingAzan(false);
+      setAudioLoading(true);
       setPlayingIqama(true);
-      const ok = await tryPlayAudio(iqamaAudioRef.current);
-      if (!ok) {
+      iqamaAudioRef.current.src = IQAMA_URL;
+      try {
+        await iqamaAudioRef.current.play();
+      } catch {
         setPlayingIqama(false);
-        setAudioError("Audio yüklənə bilmədi. İnternet bağlantınızı yoxlayın.");
+        setAudioError(
+          "Audio oynatmaq üçün düyməyə basın (brauzer icazəsi lazımdır).",
+        );
+      } finally {
+        setAudioLoading(false);
       }
     }
   };
 
-  // needleAngle: how many degrees the needle is offset from "up" (12 o'clock)
-  // When needleAngle ≈ 0, phone is pointing toward Qibla
+  // needleAngle: angle the needle should point from "up" (12 o'clock)
+  // needle points up (0°) = phone is facing Qibla direction
   const needleAngle =
     qiblaAngle !== null
       ? compassSupported
-        ? qiblaAngle - deviceHeading
+        ? (qiblaAngle - deviceHeading + 360) % 360
         : qiblaAngle
       : 0;
 
-  const normalizedAngle = ((needleAngle % 360) + 360) % 360;
-  const isAligned =
-    compassSupported && (normalizedAngle < 12 || normalizedAngle > 348);
+  const isAligned = compassSupported && (needleAngle < 10 || needleAngle > 350);
 
   return (
     <div
@@ -315,7 +376,7 @@ export default function QiblaPage() {
             </div>
           ) : compassSupported ? (
             <p className="text-white/50 text-sm text-center">
-              📱 Telefonu döndürün — qızıl ox yuxarıya baxanda Qiblə
+              📱 Telefonu döndürün — ox yuxarıya (🕋 işarəsinə) baxanda Qiblə
               istiqamətindasınız
             </p>
           ) : (
@@ -353,7 +414,7 @@ export default function QiblaPage() {
               }}
             />
 
-            {/* Compass directions */}
+            {/* Compass directions - these do NOT rotate (fixed labels) */}
             {["Ş", "Cə", "C", "Qə"].map((dir, i) => {
               const angle = i * 90;
               const rad = ((angle - 90) * Math.PI) / 180;
@@ -408,18 +469,18 @@ export default function QiblaPage() {
               );
             })}
 
-            {/* Qibla needle */}
+            {/* Qibla needle - rotates to show direction */}
             <div
               className="absolute inset-0 flex items-center justify-center"
               style={{
                 transform: `rotate(${needleAngle}deg)`,
                 transition: compassSupported
-                  ? "transform 0.15s ease"
+                  ? "transform 0.1s linear"
                   : "transform 0.4s ease",
               }}
             >
               <div className="relative" style={{ width: 8, height: 200 }}>
-                {/* Qibla tip (points toward Mecca) — gold */}
+                {/* Qibla tip (points toward Mecca) — gold/green when aligned */}
                 <div
                   style={{
                     position: "absolute",
@@ -497,6 +558,11 @@ export default function QiblaPage() {
               {Math.round(qiblaAngle)}°
             </p>
             <p className="text-white/50 text-sm">Şimaldan saat yönündə</p>
+            {compassSupported && (
+              <p className="text-white/40 text-xs mt-1">
+                Cihaz istiqaməti: {Math.round(deviceHeading)}°
+              </p>
+            )}
           </div>
 
           {/* Azan & Iqama */}
@@ -521,6 +587,7 @@ export default function QiblaPage() {
             <div className="flex gap-3">
               <Button
                 onClick={toggleAzan}
+                disabled={audioLoading}
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all"
                 style={{
                   background: playingAzan
@@ -538,6 +605,7 @@ export default function QiblaPage() {
 
               <Button
                 onClick={toggleIqama}
+                disabled={audioLoading}
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all"
                 style={{
                   background: playingIqama
@@ -551,6 +619,9 @@ export default function QiblaPage() {
                 {playingIqama ? "Dayandır" : "İqamə"}
               </Button>
             </div>
+            <p className="text-white/30 text-xs text-center mt-3">
+              ⚠️ Audio yalnız Chrome/Safari-də düzgün işləyir
+            </p>
           </div>
 
           {/* Info card */}
