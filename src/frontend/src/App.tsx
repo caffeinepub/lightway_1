@@ -13,10 +13,15 @@ import { I18nProvider } from "./contexts/i18n";
 import AdminPage from "./pages/AdminPage";
 import ArabicLearnPage from "./pages/ArabicLearnPage";
 import BooksPage from "./pages/BooksPage";
+import CommunityDuaPage from "./pages/CommunityDuaPage";
+import DailyPlanPage from "./pages/DailyPlanPage";
+import ExtrasPage from "./pages/ExtrasPage";
 import HomePage from "./pages/HomePage";
+import MoodGuidancePage from "./pages/MoodGuidancePage";
 import PrayerTimesPage from "./pages/PrayerTimesPage";
 import QiblaPage from "./pages/QiblaPage";
 import QuranPage from "./pages/QuranPage";
+import TasbehPage from "./pages/TasbehPage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1 } },
@@ -83,6 +88,36 @@ const qiblaRoute = createRoute({
   component: QiblaPage,
 });
 
+const extrasRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/extras",
+  component: ExtrasPage,
+});
+
+const tasbehRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/tasbeh",
+  component: TasbehPage,
+});
+
+const dailyPlanRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/daily-plan",
+  component: DailyPlanPage,
+});
+
+const moodGuidanceRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/mood-guidance",
+  component: MoodGuidancePage,
+});
+
+const communityDuaRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/community-dua",
+  component: CommunityDuaPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   prayerTimesRoute,
@@ -91,6 +126,11 @@ const routeTree = rootRoute.addChildren([
   adminRoute,
   arabicLearnRoute,
   qiblaRoute,
+  extrasRoute,
+  tasbehRoute,
+  dailyPlanRoute,
+  moodGuidanceRoute,
+  communityDuaRoute,
 ]);
 
 const router = createRouter({ routeTree });

@@ -48,6 +48,12 @@ export enum UserRole {
     user = "user",
     guest = "guest"
 }
+export interface Dua {
+    id: string;
+    text: string;
+    aminCount: bigint;
+    createdAt: bigint;
+}
 export interface backendInterface {
     addBook(id: string, title: string, author: string, description: string, blob: ExternalBlob): Promise<Book>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
@@ -64,4 +70,7 @@ export interface backendInterface {
     listBooks(): Promise<Array<Book>>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
+    submitDua(text: string): Promise<string>;
+    listDuas(): Promise<Array<Dua>>;
+    aminDua(id: string): Promise<void>;
 }

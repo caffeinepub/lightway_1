@@ -47,9 +47,23 @@
     --sidebar-ring: 0.695 0.105 75;
   }
 
+  .dark {
+    --background: 0.1 0.02 260;
+    --foreground: 0.92 0.01 260;
+    --card: 0.12 0.025 260;
+    --card-foreground: 0.92 0.01 260;
+    --muted: 0.16 0.02 260;
+    --muted-foreground: 0.55 0.02 260;
+    --border: 0.2 0.025 260;
+    --islamic-dark: 0.08 0.02 260;
+    --islamic-green: 0.22 0.05 260;
+    --islamic-mid: 0.16 0.04 260;
+  }
+
   html,
   body {
     height: 100%;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   * {
@@ -75,6 +89,7 @@
     background-color: oklch(var(--background));
     box-shadow: 0 0 40px oklch(var(--islamic-dark) / 0.8), 0 0 0 1px
       oklch(var(--islamic-gold) / 0.1);
+    transition: background-color 0.3s ease;
   }
 
   .font-amiri {

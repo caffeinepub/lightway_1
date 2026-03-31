@@ -32,15 +32,13 @@ function calculateDistance(lat: number, lng: number): number {
   return Math.round(R * c);
 }
 
-// Reliable azan audio - using archive.org direct links (no CORS issues)
-const AZAN_URL =
-  "https://ia800104.us.archive.org/21/items/AzaanCollection/Azan_Mecca.mp3";
+const AZAN_URL = "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3";
 const AZAN_FALLBACK =
-  "https://ia601200.us.archive.org/17/items/adhan_20210907/adhan.mp3";
+  "https://cdn.islamic.network/quran/audio/64/ar.alafasy/1.mp3";
 const IQAMA_URL =
-  "https://ia803404.us.archive.org/14/items/IqamahIslam/Iqamah.mp3";
+  "https://cdn.islamic.network/quran/audio/128/ar.alafasy/112.mp3";
 const IQAMA_FALLBACK =
-  "https://ia800104.us.archive.org/21/items/AzaanCollection/Iqama.mp3";
+  "https://cdn.islamic.network/quran/audio/64/ar.alafasy/112.mp3";
 
 export default function QiblaPage() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
@@ -61,25 +59,26 @@ export default function QiblaPage() {
   const azanAudioRef = useRef<HTMLAudioElement | null>(null);
   const iqamaAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Setup audio elements - no crossOrigin to avoid CORS
   useEffect(() => {
     const azan = new Audio();
     azan.preload = "none";
     azan.addEventListener("ended", () => setPlayingAzan(false));
+    azan.addEventListener("canplaythrough", () => setAudioLoading(false));
     azan.addEventListener("error", () => {
-      // Try fallback
       if (azan.src !== AZAN_FALLBACK) {
         azan.src = AZAN_FALLBACK;
         azan.play().catch(() => {
           setPlayingAzan(false);
+          setAudioLoading(false);
           setAudioError(
-            "Azan audio yüklənə bilmədi. İnternet bağlantısını yoxlayın.",
+            "Audio yüklənə bilmədi. Chrome/Safari brauzeri tövsiyə olunur.",
           );
         });
       } else {
         setPlayingAzan(false);
+        setAudioLoading(false);
         setAudioError(
-          "Azan audio yüklənə bilmədi. İnternet bağlantısını yoxlayın.",
+          "Audio yüklənə bilmədi. Chrome/Safari brauzeri tövsiyə olunur.",
         );
       }
     });
@@ -88,19 +87,22 @@ export default function QiblaPage() {
     const iqama = new Audio();
     iqama.preload = "none";
     iqama.addEventListener("ended", () => setPlayingIqama(false));
+    iqama.addEventListener("canplaythrough", () => setAudioLoading(false));
     iqama.addEventListener("error", () => {
       if (iqama.src !== IQAMA_FALLBACK) {
         iqama.src = IQAMA_FALLBACK;
         iqama.play().catch(() => {
           setPlayingIqama(false);
+          setAudioLoading(false);
           setAudioError(
-            "İqamə audio yüklənə bilmədi. İnternet bağlantısını yoxlayın.",
+            "Audio yüklənə bilmədi. Chrome/Safari brauzeri tövsiyə olunur.",
           );
         });
       } else {
         setPlayingIqama(false);
+        setAudioLoading(false);
         setAudioError(
-          "İqamə audio yüklənə bilmədi. İnternet bağlantısını yoxlayın.",
+          "Audio yüklənə bilmədi. Chrome/Safari brauzeri tövsiyə olunur.",
         );
       }
     });
@@ -112,7 +114,6 @@ export default function QiblaPage() {
     };
   }, []);
 
-  // Get GPS location
   useEffect(() => {
     if (!navigator.geolocation) {
       setLocationError("Cihazınız GPS dəstəkləmir");
@@ -137,17 +138,14 @@ export default function QiblaPage() {
     );
   }, []);
 
-  // Device compass - use deviceorientationabsolute if available for accurate heading
   const startCompass = (onHeading: (h: number) => void) => {
     const handleOrientation = (e: DeviceOrientationEvent) => {
       let heading: number;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((e as any).webkitCompassHeading !== undefined) {
-        // iOS - webkitCompassHeading is already true north clockwise
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         heading = (e as any).webkitCompassHeading;
       } else if (e.alpha !== null) {
-        // Android - alpha is counterclockwise from north
         heading = (360 - e.alpha) % 360;
       } else {
         return;
@@ -156,7 +154,6 @@ export default function QiblaPage() {
       onHeading(heading);
     };
 
-    // Prefer absolute orientation (more accurate on Android)
     const supportsAbsolute = "ondeviceorientationabsolute" in window;
     if (supportsAbsolute) {
       window.addEventListener(
@@ -207,7 +204,6 @@ export default function QiblaPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const DOE = DeviceOrientationEvent as any;
     if (typeof DOE?.requestPermission !== "function") {
-      // Non-iOS: start automatically
       return startCompass(setDeviceHeading);
     }
   }, []);
@@ -231,13 +227,11 @@ export default function QiblaPage() {
       try {
         await azanAudioRef.current.play();
       } catch {
-        // Error handler on the audio element will handle fallback
         setPlayingAzan(false);
+        setAudioLoading(false);
         setAudioError(
           "Audio oynatmaq üçün düyməyə basın (brauzer icazəsi lazımdır).",
         );
-      } finally {
-        setAudioLoading(false);
       }
     }
   };
@@ -262,17 +256,14 @@ export default function QiblaPage() {
         await iqamaAudioRef.current.play();
       } catch {
         setPlayingIqama(false);
+        setAudioLoading(false);
         setAudioError(
           "Audio oynatmaq üçün düyməyə basın (brauzer icazəsi lazımdır).",
         );
-      } finally {
-        setAudioLoading(false);
       }
     }
   };
 
-  // needleAngle: angle the needle should point from "up" (12 o'clock)
-  // needle points up (0°) = phone is facing Qibla direction
   const needleAngle =
     qiblaAngle !== null
       ? compassSupported
@@ -290,7 +281,6 @@ export default function QiblaPage() {
           "linear-gradient(180deg, oklch(var(--islamic-dark)) 0%, oklch(0.12 0.04 150) 100%)",
       }}
     >
-      {/* Header */}
       <div className="px-4 pt-6 pb-4 text-center">
         <h1
           className="text-2xl font-bold"
@@ -301,7 +291,6 @@ export default function QiblaPage() {
         <p className="text-white/60 text-sm mt-1">Məkkə istiqaməti</p>
       </div>
 
-      {/* Loading */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <Loader2
@@ -313,7 +302,6 @@ export default function QiblaPage() {
         </div>
       )}
 
-      {/* Error */}
       {!loading && locationError && (
         <div className="mx-4 p-4 rounded-2xl border border-red-500/30 bg-red-900/20 text-center">
           <MapPin size={32} className="mx-auto mb-2 text-red-400" />
@@ -324,10 +312,8 @@ export default function QiblaPage() {
         </div>
       )}
 
-      {/* Compass */}
       {!loading && qiblaAngle !== null && (
         <div className="flex flex-col items-center px-4 gap-6">
-          {/* Location info */}
           {location && (
             <div
               className="flex items-center gap-2 px-4 py-2 rounded-full text-sm"
@@ -347,7 +333,6 @@ export default function QiblaPage() {
             </div>
           )}
 
-          {/* iOS compass permission button */}
           {!compassSupported && !permissionRequested && (
             <button
               type="button"
@@ -362,7 +347,6 @@ export default function QiblaPage() {
             </button>
           )}
 
-          {/* Alignment badge */}
           {isAligned ? (
             <div
               className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold animate-pulse"
@@ -386,7 +370,6 @@ export default function QiblaPage() {
             </p>
           )}
 
-          {/* Compass circle */}
           <div
             className="relative"
             style={{
@@ -398,7 +381,6 @@ export default function QiblaPage() {
               transition: "filter 0.5s ease",
             }}
           >
-            {/* Outer ring */}
             <div
               className="absolute inset-0 rounded-full"
               style={{
@@ -414,7 +396,6 @@ export default function QiblaPage() {
               }}
             />
 
-            {/* Compass directions - these do NOT rotate (fixed labels) */}
             {["Ş", "Cə", "C", "Qə"].map((dir, i) => {
               const angle = i * 90;
               const rad = ((angle - 90) * Math.PI) / 180;
@@ -436,7 +417,6 @@ export default function QiblaPage() {
               );
             })}
 
-            {/* Degree marks */}
             {Array.from({ length: 36 }).map((_, i) => {
               const angle = i * 10;
               const rad = ((angle - 90) * Math.PI) / 180;
@@ -469,7 +449,6 @@ export default function QiblaPage() {
               );
             })}
 
-            {/* Qibla needle - rotates to show direction */}
             <div
               className="absolute inset-0 flex items-center justify-center"
               style={{
@@ -480,7 +459,6 @@ export default function QiblaPage() {
               }}
             >
               <div className="relative" style={{ width: 8, height: 200 }}>
-                {/* Qibla tip (points toward Mecca) — gold/green when aligned */}
                 <div
                   style={{
                     position: "absolute",
@@ -498,7 +476,6 @@ export default function QiblaPage() {
                     transition: "background 0.5s, box-shadow 0.5s",
                   }}
                 />
-                {/* South tip */}
                 <div
                   style={{
                     position: "absolute",
@@ -511,7 +488,6 @@ export default function QiblaPage() {
                     borderRadius: "0 0 4px 4px",
                   }}
                 />
-                {/* Center dot */}
                 <div
                   style={{
                     position: "absolute",
@@ -534,7 +510,6 @@ export default function QiblaPage() {
               </div>
             </div>
 
-            {/* Kaaba icon in center */}
             <div
               className="absolute"
               style={{
@@ -549,7 +524,6 @@ export default function QiblaPage() {
             </div>
           </div>
 
-          {/* Angle info */}
           <div className="text-center">
             <p
               className="text-3xl font-bold"
@@ -565,7 +539,6 @@ export default function QiblaPage() {
             )}
           </div>
 
-          {/* Azan & Iqama */}
           <div
             className="w-full max-w-sm rounded-2xl p-5"
             style={{
@@ -580,9 +553,21 @@ export default function QiblaPage() {
               Azan & İqamə
             </p>
             {audioError && (
-              <p className="text-red-400 text-xs text-center mb-3">
+              <p
+                className="text-red-400 text-xs text-center mb-3"
+                data-ocid="qibla.error_state"
+              >
                 {audioError}
               </p>
+            )}
+            {audioLoading && (
+              <div
+                className="flex justify-center mb-3"
+                data-ocid="qibla.loading_state"
+              >
+                <Loader2 className="animate-spin text-yellow-400" size={20} />
+                <span className="text-white/50 text-xs ml-2">Yüklənir...</span>
+              </div>
             )}
             <div className="flex gap-3">
               <Button
@@ -598,6 +583,7 @@ export default function QiblaPage() {
                     : "oklch(var(--islamic-gold))",
                   border: "1px solid oklch(var(--islamic-gold) / 0.4)",
                 }}
+                data-ocid="qibla.primary_button"
               >
                 {playingAzan ? <Square size={16} /> : <Volume2 size={16} />}
                 {playingAzan ? "Dayandır" : "Azan"}
@@ -614,6 +600,7 @@ export default function QiblaPage() {
                   color: playingIqama ? "white" : "oklch(0.7 0.1 200)",
                   border: "1px solid oklch(0.6 0.1 200 / 0.4)",
                 }}
+                data-ocid="qibla.secondary_button"
               >
                 {playingIqama ? <Square size={16} /> : <Volume2 size={16} />}
                 {playingIqama ? "Dayandır" : "İqamə"}
@@ -624,7 +611,6 @@ export default function QiblaPage() {
             </p>
           </div>
 
-          {/* Info card */}
           <div
             className="w-full max-w-sm rounded-2xl p-4 text-sm text-white/50 text-center"
             style={{

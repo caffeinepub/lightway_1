@@ -1,11 +1,17 @@
 import { useLocation, useRouter } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Moon, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const PAGE_TITLES: Record<string, string> = {
   "/prayer-times": "Namaz Vaxtları",
   "/quran": "Quran",
   "/books": "Kitabxana",
   "/admin": "Admin",
+  "/extras": "Əlavələr",
+  "/tasbeh": "Rəqəmsal Təsbeh",
+  "/daily-plan": "Günlük Plan",
+  "/mood-guidance": "Əhval Rehbərliyi",
+  "/community-dua": "İcma Duası",
 };
 
 export default function MobileHeader() {
@@ -14,6 +20,31 @@ export default function MobileHeader() {
   const isHome = location.pathname === "/";
   const title = PAGE_TITLES[location.pathname];
 
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("lightway-dark-mode") === "true";
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("lightway-dark-mode", String(isDark));
+  }, [isDark]);
+
+  // Apply on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("lightway-dark-mode");
+    if (stored === "true") {
+      document.documentElement.classList.add("dark");
+      setIsDark(true);
+    }
+  }, []);
+
   return (
     <header
       className="sticky top-0 z-50 w-full flex items-center justify-center"
@@ -21,6 +52,7 @@ export default function MobileHeader() {
         backgroundColor: "oklch(var(--islamic-dark))",
         height: "52px",
         borderBottom: "1px solid oklch(var(--islamic-gold) / 0.2)",
+        transition: "background-color 0.3s ease",
       }}
     >
       {!isHome && (
@@ -55,6 +87,21 @@ export default function MobileHeader() {
           {isHome ? "LIGHTWAY" : title}
         </span>
       </div>
+
+      <button
+        type="button"
+        onClick={() => setIsDark((d) => !d)}
+        className="absolute right-3 flex items-center justify-center w-9 h-9 rounded-full transition-all"
+        style={{
+          color: "oklch(var(--islamic-gold))",
+          background: "oklch(var(--islamic-gold) / 0.1)",
+          border: "1px solid oklch(var(--islamic-gold) / 0.3)",
+        }}
+        data-ocid="header.toggle"
+        aria-label={isDark ? "Gündüz rejimi" : "Gecə rejimi"}
+      >
+        {isDark ? <Sun size={16} /> : <Moon size={16} />}
+      </button>
     </header>
   );
 }

@@ -6,6 +6,7 @@ import {
   GraduationCap,
   Home,
   Moon,
+  Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -22,7 +23,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/quran", label: "Quran", Icon: BookOpen },
   { to: "/qibla", label: "Qiblə", Icon: Compass, isCenter: true },
   { to: "/books", label: "Kitabxana", Icon: BookText },
-  { to: "/arabic-learn", label: "ƍrəbcə", Icon: GraduationCap },
+  { to: "/arabic-learn", label: "Ərəbcə", Icon: GraduationCap },
+  { to: "/extras", label: "Əlavələr", Icon: Sparkles },
 ];
 
 export default function BottomNav() {
@@ -35,6 +37,7 @@ export default function BottomNav() {
         backgroundColor: "oklch(var(--islamic-dark))",
         borderTop: "1.5px solid oklch(var(--islamic-gold) / 0.3)",
         minHeight: "60px",
+        transition: "background-color 0.3s ease",
       }}
     >
       {NAV_ITEMS.map(({ to, label, Icon, isCenter }) => {
@@ -99,8 +102,8 @@ export default function BottomNav() {
             }}
             data-ocid="nav.tab"
           >
-            <Icon size={20} strokeWidth={isActive ? 2.2 : 1.8} />
-            <span className="text-[10px] font-medium leading-tight">
+            <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
+            <span className="text-[9px] font-medium leading-tight">
               {label}
             </span>
           </Link>

@@ -5,6 +5,8 @@ import Text "mo:core/Text";
 import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 import Order "mo:core/Order";
+import Nat "mo:core/Nat";
+import Int "mo:core/Int";
 import Principal "mo:core/Principal";
 import OutCall "http-outcalls/outcall";
 import AccessControl "authorization/access-control";
@@ -26,6 +28,13 @@ actor {
     name : Text;
   };
 
+  public type Dua = {
+    id : Text;
+    text : Text;
+    aminCount : Nat;
+    createdAt : Int;
+  };
+
   module Book {
     public func compare(book1 : Book, book2 : Book) : Order.Order {
       Text.compare(book1.id, book2.id);
@@ -42,8 +51,10 @@ actor {
 
   var prayerSearchCount = 0;
   var quranSearchCount = 0;
+  var duaCounter = 0;
   let books = Map.empty<Text, Book>();
   let userProfiles = Map.empty<Principal, UserProfile>();
+  let duas = Map.empty<Text, Dua>();
 
   public query func transform(input : OutCall.TransformationInput) : async OutCall.TransformationOutput {
     OutCall.transform(input);
@@ -112,15 +123,63 @@ actor {
     books.values().toArray().sort(Book.compareByTitle);
   };
 
+  // Community Dua - Anonymous
+  public shared func submitDua(text : Text) : async Text {
+    if (text.size() == 0 or text.size() > 500) {
+      Runtime.trap("Dua text must be between 1 and 500 characters");
+    };
+    duaCounter += 1;
+    let now = Time.now();
+    let id = "dua_" # now.toText() # "_" # duaCounter.toText();
+    let dua : Dua = {
+      id;
+      text;
+      aminCount = 0;
+      createdAt = now;
+    };
+    duas.add(id, dua);
+    // Trim oldest if over 200
+    let all = duas.values().toArray();
+    if (all.size() > 200) {
+      let sorted = all.sort(func(a : Dua, b : Dua) : Order.Order {
+        Int.compare(a.createdAt, b.createdAt);
+      });
+      duas.remove(sorted[0].id);
+    };
+    id;
+  };
+
+  public query func listDuas() : async [Dua] {
+    let all = duas.values().toArray();
+    all.sort(func(a : Dua, b : Dua) : Order.Order {
+      Int.compare(b.createdAt, a.createdAt);
+    });
+  };
+
+  public shared func aminDua(id : Text) : async () {
+    switch (duas.get(id)) {
+      case (null) { Runtime.trap("Dua not found") };
+      case (?dua) {
+        let updated : Dua = {
+          id = dua.id;
+          text = dua.text;
+          aminCount = dua.aminCount + 1;
+          createdAt = dua.createdAt;
+        };
+        duas.add(id, updated);
+      };
+    };
+  };
+
   // HTTP Outcalls - Public access (including guests)
-  public shared ({ caller }) func fetchPrayerTimes(city : Text, country : Text) : async Text {
+  public shared ({ caller = _ }) func fetchPrayerTimes(city : Text, country : Text) : async Text {
     let apiUrl = "https://api.aladhan.com/v1/timingsByCity?city=" # city # "&country=" # country # "&method=2";
     let result = await OutCall.httpGetRequest(apiUrl, [], transform);
     prayerSearchCount += 1;
     result;
   };
 
-  public shared ({ caller }) func fetchQuranVerse(surah : Nat, ayah : Nat) : async Text {
+  public shared ({ caller = _ }) func fetchQuranVerse(surah : Nat, ayah : Nat) : async Text {
     let apiUrl = "https://api.alquran.cloud/v1/ayah/" # surah.toText() # ":" # ayah.toText();
     let result = await OutCall.httpGetRequest(apiUrl, [], transform);
     quranSearchCount += 1;
