@@ -92,7 +92,7 @@ export default function TasbehPage() {
           <button
             key={p}
             type="button"
-            onClick={() => handlePreset(p)}
+            onPointerDown={() => handlePreset(p)}
             className="px-4 py-1.5 rounded-full text-sm font-semibold transition-all"
             style={{
               background:
@@ -112,7 +112,7 @@ export default function TasbehPage() {
         ))}
         <button
           type="button"
-          onClick={() => setShowCustom((s) => !s)}
+          onPointerDown={() => setShowCustom((s) => !s)}
           className="px-4 py-1.5 rounded-full text-sm font-semibold transition-all"
           style={{
             background: showCustom
@@ -147,7 +147,7 @@ export default function TasbehPage() {
               data-ocid="tasbeh.input"
             />
             <Button
-              onClick={handleCustomSubmit}
+              onPointerDown={handleCustomSubmit}
               size="sm"
               style={{
                 background: "oklch(var(--islamic-gold))",
@@ -198,13 +198,11 @@ export default function TasbehPage() {
           />
         </svg>
 
-        <motion.button
+        <button
           type="button"
-          onClick={handleTap}
+          onPointerDown={handleTap}
           disabled={completed}
-          animate={{ scale: tapping ? 0.92 : 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 20 }}
-          className="w-44 h-44 rounded-full flex flex-col items-center justify-center cursor-pointer select-none transition-all"
+          className="w-44 h-44 rounded-full flex flex-col items-center justify-center cursor-pointer select-none"
           style={{
             background: completed
               ? "linear-gradient(135deg, oklch(0.45 0.15 145), oklch(0.35 0.12 145))"
@@ -213,6 +211,8 @@ export default function TasbehPage() {
             boxShadow: tapping
               ? "0 2px 8px oklch(0 0 0 / 0.5)"
               : "0 8px 32px oklch(0 0 0 / 0.4), 0 0 0 1px oklch(var(--islamic-gold) / 0.2)",
+            transform: tapping ? "scale(0.92)" : "scale(1)",
+            transition: "transform 0.15s ease, box-shadow 0.15s ease",
           }}
           data-ocid="tasbeh.primary_button"
           aria-label="Saymaq üçün bas"
@@ -226,7 +226,7 @@ export default function TasbehPage() {
           <span className="text-white/50 text-xs mt-1">
             {completed ? "✓ Tamamlandı" : `/ ${target}`}
           </span>
-        </motion.button>
+        </button>
       </div>
 
       <AnimatePresence>
@@ -254,7 +254,7 @@ export default function TasbehPage() {
 
       <button
         type="button"
-        onClick={handleReset}
+        onPointerDown={handleReset}
         className="mt-4 flex items-center gap-2 px-5 py-2 rounded-full text-sm text-white/50 transition-all hover:text-white/80"
         style={{ border: "1px solid oklch(1 0 0 / 0.1)" }}
         data-ocid="tasbeh.secondary_button"

@@ -29,6 +29,13 @@ const EXTRAS = [
     desc: "Anonim dua paylaşın, Amin deyin",
     color: "oklch(0.5 0.1 20)",
   },
+  {
+    to: "/smart-notification",
+    emoji: "✨",
+    title: "Mənəvi Mesajlar",
+    desc: "Gündəlik ruhlandırıcı sözlər",
+    color: "oklch(0.5 0.12 300)",
+  },
 ];
 
 export default function ExtrasPage() {

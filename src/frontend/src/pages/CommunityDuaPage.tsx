@@ -1,66 +1,60 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
-import { useActor } from "../hooks/useActor";
+import { useEffect, useState } from "react";
 
 interface Dua {
   id: string;
   text: string;
-  aminCount: bigint;
-  createdAt: bigint;
+  aminCount: number;
+  createdAt: number;
 }
 
-interface DuaActor {
-  submitDua(text: string): Promise<string>;
-  listDuas(): Promise<Array<Dua>>;
-  aminDua(id: string): Promise<void>;
+const STORAGE_KEY = "community-duas";
+
+function loadDuas(): Dua[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveDuas(duas: Dua[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(duas));
 }
 
 export default function CommunityDuaPage() {
-  const { actor: _actor, isFetching } = useActor();
-  const actor = _actor as unknown as DuaActor | null;
-  const queryClient = useQueryClient();
+  const [duas, setDuas] = useState<Dua[]>(() =>
+    loadDuas().sort((a, b) => b.createdAt - a.createdAt),
+  );
   const [text, setText] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
-  const { data: duas = [], isLoading } = useQuery<Dua[]>({
-    queryKey: ["duas"],
-    queryFn: async () => {
-      if (!actor) return [];
-      const list = await actor.listDuas();
-      return [...list].sort((a, b) => Number(b.createdAt - a.createdAt));
-    },
-    enabled: !!actor && !isFetching,
-    refetchInterval: 15000,
-  });
-
-  const submitMutation = useMutation({
-    mutationFn: async (t: string) => {
-      if (!actor) throw new Error("Actor not ready");
-      await actor.submitDua(t);
-    },
-    onSuccess: () => {
-      setText("");
-      queryClient.invalidateQueries({ queryKey: ["duas"] });
-    },
-  });
-
-  const aminMutation = useMutation({
-    mutationFn: async (id: string) => {
-      if (!actor) throw new Error("Actor not ready");
-      await actor.aminDua(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["duas"] });
-    },
-  });
+  useEffect(() => {
+    saveDuas(duas);
+  }, [duas]);
 
   const handleSubmit = () => {
     const trimmed = text.trim();
     if (!trimmed || trimmed.length > 300) return;
-    submitMutation.mutate(trimmed);
+    const newDua: Dua = {
+      id: Date.now().toString(),
+      text: trimmed,
+      aminCount: 0,
+      createdAt: Date.now(),
+    };
+    setDuas((prev) => [newDua, ...prev]);
+    setText("");
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 3000);
+  };
+
+  const handleAmin = (id: string) => {
+    setDuas((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, aminCount: d.aminCount + 1 } : d)),
+    );
   };
 
   return (
@@ -103,9 +97,7 @@ export default function CommunityDuaPage() {
           <span className="text-white/30 text-xs">{text.length}/300</span>
           <Button
             onClick={handleSubmit}
-            disabled={
-              !text.trim() || text.length > 300 || submitMutation.isPending
-            }
+            disabled={!text.trim() || text.length > 300}
             size="sm"
             className="font-semibold"
             style={{
@@ -114,21 +106,10 @@ export default function CommunityDuaPage() {
             }}
             data-ocid="community.submit_button"
           >
-            {submitMutation.isPending ? (
-              <Loader2 className="animate-spin" size={14} />
-            ) : null}
             🤲 Dua et
           </Button>
         </div>
-        {submitMutation.isError && (
-          <p
-            className="text-red-400 text-xs mt-2"
-            data-ocid="community.error_state"
-          >
-            Xəta baş verdi. Yenidən cəhd edin.
-          </p>
-        )}
-        {submitMutation.isSuccess && (
+        {submitted && (
           <p
             className="text-green-400 text-xs mt-2"
             data-ocid="community.success_state"
@@ -144,16 +125,7 @@ export default function CommunityDuaPage() {
           Paylaşılan Dualar
         </p>
 
-        {isLoading && (
-          <div
-            className="flex justify-center py-10"
-            data-ocid="community.loading_state"
-          >
-            <Loader2 className="animate-spin text-yellow-500" size={28} />
-          </div>
-        )}
-
-        {!isLoading && duas.length === 0 && (
+        {duas.length === 0 && (
           <div
             className="text-center py-12 text-white/30 text-sm"
             data-ocid="community.empty_state"
@@ -170,7 +142,7 @@ export default function CommunityDuaPage() {
               key={dua.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
+              transition={{ delay: i * 0.04 }}
               className="mb-3 p-4 rounded-2xl"
               style={{
                 background: "oklch(var(--islamic-dark) / 0.6)",
@@ -183,21 +155,18 @@ export default function CommunityDuaPage() {
               </p>
               <div className="flex items-center justify-between">
                 <span className="text-white/25 text-xs">
-                  {new Date(
-                    Number(dua.createdAt) / 1_000_000,
-                  ).toLocaleDateString()}
+                  {new Date(dua.createdAt).toLocaleDateString()}
                 </span>
                 <button
                   type="button"
-                  onClick={() => aminMutation.mutate(dua.id)}
-                  disabled={aminMutation.isPending}
+                  onClick={() => handleAmin(dua.id)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
                   style={{
                     background: "oklch(var(--islamic-gold) / 0.12)",
                     color: "oklch(var(--islamic-gold))",
                     border: "1px solid oklch(var(--islamic-gold) / 0.3)",
                   }}
-                  data-ocid={`community.delete_button.${i + 1}`}
+                  data-ocid={`community.amin_button.${i + 1}`}
                 >
                   🤲 Amin
                   <span
@@ -206,7 +175,7 @@ export default function CommunityDuaPage() {
                       background: "oklch(var(--islamic-gold) / 0.2)",
                     }}
                   >
-                    {String(dua.aminCount)}
+                    {dua.aminCount}
                   </span>
                 </button>
               </div>

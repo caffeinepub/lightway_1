@@ -21,6 +21,7 @@ import MoodGuidancePage from "./pages/MoodGuidancePage";
 import PrayerTimesPage from "./pages/PrayerTimesPage";
 import QiblaPage from "./pages/QiblaPage";
 import QuranPage from "./pages/QuranPage";
+import SmartNotificationPage from "./pages/SmartNotificationPage";
 import TasbehPage from "./pages/TasbehPage";
 
 const queryClient = new QueryClient({
@@ -118,6 +119,12 @@ const communityDuaRoute = createRoute({
   component: CommunityDuaPage,
 });
 
+const smartNotificationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/smart-notification",
+  component: SmartNotificationPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   prayerTimesRoute,
@@ -131,6 +138,7 @@ const routeTree = rootRoute.addChildren([
   dailyPlanRoute,
   moodGuidanceRoute,
   communityDuaRoute,
+  smartNotificationRoute,
 ]);
 
 const router = createRouter({ routeTree });

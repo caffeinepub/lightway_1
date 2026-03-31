@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Volume2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 
@@ -53,10 +53,22 @@ function getPlanKey() {
   return `daily-plan-${new Date().toDateString()}`;
 }
 
+function speakArabic(text: string, onEnd?: () => void) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "ar-SA";
+  utter.rate = 0.8;
+  if (onEnd) utter.onend = onEnd;
+  if (onEnd) utter.onerror = onEnd;
+  window.speechSynthesis.speak(utter);
+}
+
 export default function DailyPlanPage() {
   const seed = hashDate(new Date().toDateString());
   const ayah = AYAHS[seed % AYAHS.length];
   const dua = DUAS[seed % DUAS.length];
+  const [speaking, setSpeaking] = useState<string | null>(null);
 
   const loadChecked = (): [boolean, boolean, boolean] => {
     try {
@@ -86,6 +98,11 @@ export default function DailyPlanPage() {
   const reset = () => {
     setChecked([false, false, false]);
     localStorage.setItem(getPlanKey(), JSON.stringify([false, false, false]));
+  };
+
+  const handleSpeak = (text: string, key: string) => {
+    setSpeaking(key);
+    speakArabic(text, () => setSpeaking(null));
   };
 
   const TASKS = [
@@ -161,16 +178,34 @@ export default function DailyPlanPage() {
                 data-ocid={`daily.checkbox.${idx + 1}`}
               />
               <div className="flex-1">
-                <p
-                  className="text-sm font-semibold mb-1"
-                  style={{
-                    color: checked
-                      ? "oklch(0.65 0.18 145)"
-                      : "oklch(var(--islamic-gold))",
-                  }}
-                >
-                  {label}
-                </p>
+                <div className="flex items-center justify-between mb-1">
+                  <p
+                    className="text-sm font-semibold"
+                    style={{
+                      color: checked
+                        ? "oklch(0.65 0.18 145)"
+                        : "oklch(var(--islamic-gold))",
+                    }}
+                  >
+                    {label}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleSpeak(ar, id)}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-all"
+                    style={{
+                      background:
+                        speaking === id
+                          ? "oklch(var(--islamic-gold) / 0.3)"
+                          : "oklch(var(--islamic-gold) / 0.1)",
+                      color: "oklch(var(--islamic-gold))",
+                      border: "1px solid oklch(var(--islamic-gold) / 0.25)",
+                    }}
+                  >
+                    <Volume2 size={10} />
+                    {speaking === id ? "..." : "Səsləndir"}
+                  </button>
+                </div>
                 <p
                   className="font-amiri text-base text-right leading-relaxed mb-1"
                   style={{ color: "rgba(255,255,255,0.85)" }}
