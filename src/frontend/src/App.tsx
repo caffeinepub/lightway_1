@@ -17,6 +17,7 @@ import CommunityDuaPage from "./pages/CommunityDuaPage";
 import DailyPlanPage from "./pages/DailyPlanPage";
 import ExtrasPage from "./pages/ExtrasPage";
 import HomePage from "./pages/HomePage";
+import IstixaraPage from "./pages/IstixaraPage";
 import MoodGuidancePage from "./pages/MoodGuidancePage";
 import PrayerTimesPage from "./pages/PrayerTimesPage";
 import QiblaPage from "./pages/QiblaPage";
@@ -125,6 +126,12 @@ const smartNotificationRoute = createRoute({
   component: SmartNotificationPage,
 });
 
+const istixaraRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/istixara",
+  component: IstixaraPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   prayerTimesRoute,
@@ -139,6 +146,7 @@ const routeTree = rootRoute.addChildren([
   moodGuidanceRoute,
   communityDuaRoute,
   smartNotificationRoute,
+  istixaraRoute,
 ]);
 
 const router = createRouter({ routeTree });

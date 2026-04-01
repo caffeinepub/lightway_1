@@ -1,6 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Loader2, MapPin, Navigation, Square, Volume2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Loader2, MapPin, Navigation } from "lucide-react";
+import { useEffect, useState } from "react";
 
 // Mecca coordinates
 const MECCA_LAT = 21.4225;
@@ -32,14 +31,6 @@ function calculateDistance(lat: number, lng: number): number {
   return Math.round(R * c);
 }
 
-const AZAN_URL = "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3";
-const AZAN_FALLBACK =
-  "https://cdn.islamic.network/quran/audio/64/ar.alafasy/1.mp3";
-const IQAMA_URL =
-  "https://cdn.islamic.network/quran/audio/128/ar.alafasy/112.mp3";
-const IQAMA_FALLBACK =
-  "https://cdn.islamic.network/quran/audio/64/ar.alafasy/112.mp3";
-
 export default function QiblaPage() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null,
@@ -49,70 +40,8 @@ export default function QiblaPage() {
   const [deviceHeading, setDeviceHeading] = useState<number>(0);
   const [qiblaAngle, setQiblaAngle] = useState<number | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
-  const [playingAzan, setPlayingAzan] = useState(false);
-  const [playingIqama, setPlayingIqama] = useState(false);
   const [compassSupported, setCompassSupported] = useState(false);
-  const [audioError, setAudioError] = useState<string | null>(null);
   const [permissionRequested, setPermissionRequested] = useState(false);
-  const [audioLoading, setAudioLoading] = useState(false);
-
-  const azanAudioRef = useRef<HTMLAudioElement | null>(null);
-  const iqamaAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    const azan = new Audio();
-    azan.preload = "none";
-    azan.addEventListener("ended", () => setPlayingAzan(false));
-    azan.addEventListener("canplaythrough", () => setAudioLoading(false));
-    azan.addEventListener("error", () => {
-      if (azan.src !== AZAN_FALLBACK) {
-        azan.src = AZAN_FALLBACK;
-        azan.play().catch(() => {
-          setPlayingAzan(false);
-          setAudioLoading(false);
-          setAudioError(
-            "Audio yüklənə bilmədi. Chrome/Safari brauzeri tövsiyə olunur.",
-          );
-        });
-      } else {
-        setPlayingAzan(false);
-        setAudioLoading(false);
-        setAudioError(
-          "Audio yüklənə bilmədi. Chrome/Safari brauzeri tövsiyə olunur.",
-        );
-      }
-    });
-    azanAudioRef.current = azan;
-
-    const iqama = new Audio();
-    iqama.preload = "none";
-    iqama.addEventListener("ended", () => setPlayingIqama(false));
-    iqama.addEventListener("canplaythrough", () => setAudioLoading(false));
-    iqama.addEventListener("error", () => {
-      if (iqama.src !== IQAMA_FALLBACK) {
-        iqama.src = IQAMA_FALLBACK;
-        iqama.play().catch(() => {
-          setPlayingIqama(false);
-          setAudioLoading(false);
-          setAudioError(
-            "Audio yüklənə bilmədi. Chrome/Safari brauzeri tövsiyə olunur.",
-          );
-        });
-      } else {
-        setPlayingIqama(false);
-        setAudioLoading(false);
-        setAudioError(
-          "Audio yüklənə bilmədi. Chrome/Safari brauzeri tövsiyə olunur.",
-        );
-      }
-    });
-    iqamaAudioRef.current = iqama;
-
-    return () => {
-      azan.pause();
-      iqama.pause();
-    };
-  }, []);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -207,62 +136,6 @@ export default function QiblaPage() {
       return startCompass(setDeviceHeading);
     }
   }, []);
-
-  const toggleAzan = async () => {
-    if (!azanAudioRef.current) return;
-    setAudioError(null);
-    if (playingAzan) {
-      azanAudioRef.current.pause();
-      azanAudioRef.current.currentTime = 0;
-      setPlayingAzan(false);
-    } else {
-      iqamaAudioRef.current?.pause();
-      if (iqamaAudioRef.current) {
-        iqamaAudioRef.current.currentTime = 0;
-      }
-      setPlayingIqama(false);
-      setAudioLoading(true);
-      setPlayingAzan(true);
-      azanAudioRef.current.src = AZAN_URL;
-      try {
-        await azanAudioRef.current.play();
-      } catch {
-        setPlayingAzan(false);
-        setAudioLoading(false);
-        setAudioError(
-          "Audio oynatmaq üçün düyməyə basın (brauzer icazəsi lazımdır).",
-        );
-      }
-    }
-  };
-
-  const toggleIqama = async () => {
-    if (!iqamaAudioRef.current) return;
-    setAudioError(null);
-    if (playingIqama) {
-      iqamaAudioRef.current.pause();
-      iqamaAudioRef.current.currentTime = 0;
-      setPlayingIqama(false);
-    } else {
-      azanAudioRef.current?.pause();
-      if (azanAudioRef.current) {
-        azanAudioRef.current.currentTime = 0;
-      }
-      setPlayingAzan(false);
-      setAudioLoading(true);
-      setPlayingIqama(true);
-      iqamaAudioRef.current.src = IQAMA_URL;
-      try {
-        await iqamaAudioRef.current.play();
-      } catch {
-        setPlayingIqama(false);
-        setAudioLoading(false);
-        setAudioError(
-          "Audio oynatmaq üçün düyməyə basın (brauzer icazəsi lazımdır).",
-        );
-      }
-    }
-  };
 
   const needleAngle =
     qiblaAngle !== null
@@ -537,78 +410,6 @@ export default function QiblaPage() {
                 Cihaz istiqaməti: {Math.round(deviceHeading)}°
               </p>
             )}
-          </div>
-
-          <div
-            className="w-full max-w-sm rounded-2xl p-5"
-            style={{
-              background: "oklch(var(--islamic-dark) / 0.8)",
-              border: "1px solid oklch(var(--islamic-gold) / 0.25)",
-            }}
-          >
-            <p
-              className="text-center text-sm font-medium mb-4"
-              style={{ color: "oklch(var(--islamic-gold))" }}
-            >
-              Azan & İqamə
-            </p>
-            {audioError && (
-              <p
-                className="text-red-400 text-xs text-center mb-3"
-                data-ocid="qibla.error_state"
-              >
-                {audioError}
-              </p>
-            )}
-            {audioLoading && (
-              <div
-                className="flex justify-center mb-3"
-                data-ocid="qibla.loading_state"
-              >
-                <Loader2 className="animate-spin text-yellow-400" size={20} />
-                <span className="text-white/50 text-xs ml-2">Yüklənir...</span>
-              </div>
-            )}
-            <div className="flex gap-3">
-              <Button
-                onClick={toggleAzan}
-                disabled={audioLoading}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all"
-                style={{
-                  background: playingAzan
-                    ? "oklch(var(--islamic-gold))"
-                    : "oklch(var(--islamic-gold) / 0.15)",
-                  color: playingAzan
-                    ? "oklch(var(--islamic-dark))"
-                    : "oklch(var(--islamic-gold))",
-                  border: "1px solid oklch(var(--islamic-gold) / 0.4)",
-                }}
-                data-ocid="qibla.primary_button"
-              >
-                {playingAzan ? <Square size={16} /> : <Volume2 size={16} />}
-                {playingAzan ? "Dayandır" : "Azan"}
-              </Button>
-
-              <Button
-                onClick={toggleIqama}
-                disabled={audioLoading}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all"
-                style={{
-                  background: playingIqama
-                    ? "oklch(0.6 0.1 200)"
-                    : "oklch(0.6 0.1 200 / 0.15)",
-                  color: playingIqama ? "white" : "oklch(0.7 0.1 200)",
-                  border: "1px solid oklch(0.6 0.1 200 / 0.4)",
-                }}
-                data-ocid="qibla.secondary_button"
-              >
-                {playingIqama ? <Square size={16} /> : <Volume2 size={16} />}
-                {playingIqama ? "Dayandır" : "İqamə"}
-              </Button>
-            </div>
-            <p className="text-white/30 text-xs text-center mt-3">
-              ⚠️ Audio yalnız Chrome/Safari-də düzgün işləyir
-            </p>
           </div>
 
           <div

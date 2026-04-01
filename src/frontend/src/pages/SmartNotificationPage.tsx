@@ -101,6 +101,7 @@ const MESSAGES = [
   "Ümidini itirmə",
   "Allah hər şeyi düzəldər",
   "Sən tək deyilsən",
+  "Bu gün istixara etməyi düşünə bilərsən",
 ];
 
 const STORAGE_KEY = "lightway_notif_state";

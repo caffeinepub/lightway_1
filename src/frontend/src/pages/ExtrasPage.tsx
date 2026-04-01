@@ -36,6 +36,13 @@ const EXTRAS = [
     desc: "Gündəlik ruhlandırıcı sözlər",
     color: "oklch(0.5 0.12 300)",
   },
+  {
+    to: "/istixara",
+    emoji: "🤍",
+    title: "İstixara",
+    desc: "Qərar verərkən Allahdan xeyir istəmək",
+    color: "oklch(0.55 0.08 30)",
+  },
 ];
 
 export default function ExtrasPage() {
