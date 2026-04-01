@@ -1,36 +1,38 @@
-# Lightway — İstixara Module
+# Lightway
 
 ## Current State
-- App has Extras section with 5 modules (Tasbeh, Daily Plan, Mood Guidance, Community Dua, Smart Notifications)
-- QiblaPage has Azan & İqamə audio section at the bottom
-- SmartNotificationPage has 100 messages in MESSAGES array
-- No İstixara module exists
+- App has an Istixara module (/istixara route, IstixaraPage component, entry in ExtrasPage EXTRAS array)
+- Əlavələr bölməsi (ExtrasPage) has 6 items including Istixara
+- No random ayah feature exists
 
 ## Requested Changes (Diff)
 
 ### Add
-- New `IstixaraPage.tsx` page — single scrollable page with:
-  - Relevant Quran ayah at top (Al-Baqarah 216 or similar about tawakkul/istikhara)
-  - Title: "İstixara", subtitle: "Allahdan xeyirli olanı istəmək üçün dua və namaz"
-  - Definition section explaining what istikhara is
-  - Step-by-step guide: 1. Niyyət, 2. 2 rükət namaz, 3. İstixara duası, 4. Qəlbi müşahidə et
-  - Full dua in 3 sections: Arabic text, Latin transliteration, Azerbaijani translation
-  - "(qərar verilən iş)" placeholder shown in different color (amber/gold) as static text
-  - Important notes (VACİB QEYDLƏR) section
-  - Quick summary (QISA XÜLASƏ) section
-- Add İstixara route `/istixara` to App.tsx
-- Add İstixara entry to ExtrasPage EXTRAS array
+- New "Təsadüfi Ayə" page (/random-ayah route) in Əlavələr
+  - Fetches random verse from Quran API (https://api.alquran.cloud/v1)
+  - Shows: Arabic text, Latin transliteration, Azerbaijani translation
+  - "Növbəti ayə" button to load a new random verse (no immediate repeat)
+  - "Oxu" button that uses browser TTS to read the Arabic text
+  - Spiritual, calming UI consistent with app style
 
 ### Modify
-- `SmartNotificationPage.tsx`: add "Bu gün istixara etməyi düşünə bilərsən" to MESSAGES array (101st message)
-- `QiblaPage.tsx`: remove the entire Azan & İqamə section (audio refs, state, toggle functions, and the UI card)
+- ExtrasPage: remove Istixara entry, add Təsadüfi Ayə entry
+- App.tsx: remove istixaraRoute, add randomAyahRoute
 
 ### Remove
-- Azan/İqamə audio from QiblaPage (state, refs, useEffect for audio, toggleAzan, toggleIqama functions, and UI card)
+- IstixaraPage.tsx (delete entirely)
+- Istixara route from App.tsx
+- Istixara entry from ExtrasPage EXTRAS array
 
 ## Implementation Plan
-1. Create IstixaraPage.tsx with full content
-2. Add route in App.tsx
-3. Add entry in ExtrasPage.tsx
-4. Remove Azan/İqamə from QiblaPage.tsx
-5. Add istixara reminder message to SmartNotificationPage.tsx MESSAGES array
+1. Delete/empty IstixaraPage.tsx (replace with redirect or remove file reference)
+2. Remove istixaraRoute from App.tsx, remove IstixaraPage import
+3. Remove istixara from EXTRAS in ExtrasPage.tsx
+4. Add Təsadüfi Ayə entry to EXTRAS
+5. Create RandomAyahPage.tsx:
+   - Use alquran.cloud API: GET /v1/ayah/{number}/editions/quran-uthmani,en.transliteration,az.mammadaliyev (or similar)
+   - Total ayahs: 6236, pick random number 1-6236 avoiding last shown
+   - Display Arabic, transliteration, Azerbaijani translation
+   - TTS button using Web Speech API
+   - Loading/error states
+6. Register /random-ayah route in App.tsx

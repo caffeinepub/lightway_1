@@ -17,11 +17,11 @@ import CommunityDuaPage from "./pages/CommunityDuaPage";
 import DailyPlanPage from "./pages/DailyPlanPage";
 import ExtrasPage from "./pages/ExtrasPage";
 import HomePage from "./pages/HomePage";
-import IstixaraPage from "./pages/IstixaraPage";
 import MoodGuidancePage from "./pages/MoodGuidancePage";
 import PrayerTimesPage from "./pages/PrayerTimesPage";
 import QiblaPage from "./pages/QiblaPage";
 import QuranPage from "./pages/QuranPage";
+import RandomAyahPage from "./pages/RandomAyahPage";
 import SmartNotificationPage from "./pages/SmartNotificationPage";
 import TasbehPage from "./pages/TasbehPage";
 
@@ -126,10 +126,10 @@ const smartNotificationRoute = createRoute({
   component: SmartNotificationPage,
 });
 
-const istixaraRoute = createRoute({
+const randomAyahRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/istixara",
-  component: IstixaraPage,
+  path: "/random-ayah",
+  component: RandomAyahPage,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -146,7 +146,7 @@ const routeTree = rootRoute.addChildren([
   moodGuidanceRoute,
   communityDuaRoute,
   smartNotificationRoute,
-  istixaraRoute,
+  randomAyahRoute,
 ]);
 
 const router = createRouter({ routeTree });

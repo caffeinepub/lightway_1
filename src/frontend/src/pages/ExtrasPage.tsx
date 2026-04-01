@@ -37,11 +37,11 @@ const EXTRAS = [
     color: "oklch(0.5 0.12 300)",
   },
   {
-    to: "/istixara",
-    emoji: "🤍",
-    title: "İstixara",
-    desc: "Qərar verərkən Allahdan xeyir istəmək",
-    color: "oklch(0.55 0.08 30)",
+    to: "/random-ayah",
+    emoji: "📖",
+    title: "Təsadüfi Ayə",
+    desc: "Quran-dan təsadüfi ayə oxuyun",
+    color: "oklch(0.5 0.13 200)",
   },
 ];
 
